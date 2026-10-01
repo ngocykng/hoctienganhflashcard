@@ -1,0 +1,159 @@
+<UserControl x:Class="EnglishFlashcard3D.Views.Controls.Card3DView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="420" d:DesignWidth="650">
+
+    <UserControl.Resources>
+        <!-- Storyboard Xoay thẻ sang mặt sau (0 -> 180 độ) -->
+        <Storyboard x:Key="FlipToBackStoryboard">
+            <DoubleAnimation Storyboard.TargetName="CardRotation"
+                             Storyboard.TargetProperty="Angle"
+                             To="180" Duration="0:0:0.4">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+
+        <!-- Storyboard Xoay thẻ về mặt trước (180 -> 0 độ) -->
+        <Storyboard x:Key="FlipToFrontStoryboard">
+            <DoubleAnimation Storyboard.TargetName="CardRotation"
+                             Storyboard.TargetProperty="Angle"
+                             To="0" Duration="0:0:0.4">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </UserControl.Resources>
+
+    <Grid>
+        <!-- Không gian 3D Viewport -->
+        <Viewport3D>
+            <!-- Camera góc nhìn phối cảnh (Perspective Depth) -->
+            <Viewport3D.Camera>
+                <PerspectiveCamera Position="0,0,6" LookDirection="0,0,-1" FieldOfView="45"/>
+            </Viewport3D.Camera>
+
+            <!-- Ánh sáng môi trường và chiếu sáng hướng -->
+            <ModelVisual3D>
+                <ModelVisual3D.Content>
+                    <Model3DGroup>
+                        <AmbientLight Color="#FFE0E0E0"/>
+                        <DirectionalLight Color="#FFFFFF" Direction="0.2,-0.3,-1"/>
+                    </Model3DGroup>
+                </ModelVisual3D.Content>
+            </ModelVisual3D>
+
+            <!-- Đối tượng Thẻ 3D chứa 2 mặt -->
+            <ContainerUIElement3D>
+                <ContainerUIElement3D.Transform>
+                    <RotateTransform3D>
+                        <RotateTransform3D.Rotation>
+                            <AxisAngleRotation3D x:Name="CardRotation" Axis="0,1,0" Angle="0"/>
+                        </RotateTransform3D.Rotation>
+                    </RotateTransform3D>
+                </ContainerUIElement3D.Transform>
+
+                <!-- MẶT TRƯỚC CỦA THẺ (FRONT SIDE) -->
+                <Viewport2DVisual3D>
+                    <Viewport2DVisual3D.Geometry>
+                        <MeshGeometry3D Positions="-2,1.3,0  2,1.3,0  2,-1.3,0  -2,-1.3,0"
+                                        TriangleIndices="0 1 2  0 2 3"
+                                        TextureCoordinates="0,0  1,0  1,1  0,1"/>
+                    </Viewport2DVisual3D.Geometry>
+                    <Viewport2DVisual3D.Material>
+                        <DiffuseMaterial Brush="White"/>
+                    </Viewport2DVisual3D.Material>
+
+                    <!-- Nội dung UI Mặt trước -->
+                    <Border Background="#1E293B" CornerRadius="16" BorderBrush="#38BDF8" BorderThickness="2"
+                            Width="520" Height="340" Cursor="Hand" MouseLeftButtonUp="OnCardClicked">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="25" ShadowDepth="8" Color="#000000" Opacity="0.4"/>
+                        </Border.Effect>
+
+                        <Grid Margin="30">
+                            <!-- Tag loại từ -->
+                            <Border HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                    Background="#0369A1" CornerRadius="6" Padding="10,4">
+                                <TextBlock Text="{Binding CurrentCard.PartOfSpeech}" Foreground="White" FontWeight="Bold" FontSize="13"/>
+                            </Border>
+
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!-- Từ Tiếng Anh chính -->
+                                <TextBlock Text="{Binding CurrentCard.Word}" 
+                                           Foreground="#F8FAFC" FontSize="42" FontWeight="ExtraBold" 
+                                           HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+                                <!-- Phiên âm IPA -->
+                                <TextBlock Text="{Binding CurrentCard.Phonetic}" 
+                                           Foreground="#38BDF8" FontSize="20" FontStyle="Italic"
+                                           HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+                                <!-- Nút Nghe phát âm -->
+                                <Button Command="{Binding PronounceCommand}" 
+                                        Background="#0284C7" Foreground="White" 
+                                        Padding="16,8" BorderThickness="0" Cursor="Hand">
+                                    <TextBlock Text="🔊 Nghe phát âm (P)" FontWeight="SemiBold"/>
+                                </Button>
+                            </StackPanel>
+
+                            <TextBlock Text="Nhấp chuột hoặc ấn [Space] để lật mặt sau ↻" 
+                                       Foreground="#64748B" FontSize="13" 
+                                       HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                        </Grid>
+                    </Border>
+                </Viewport2DVisual3D>
+
+                <!-- MẶT SAU CỦA THẺ (BACK SIDE - Xoay 180 độ đối xứng) -->
+                <Viewport2DVisual3D>
+                    <Viewport2DVisual3D.Geometry>
+                        <MeshGeometry3D Positions="2,1.3,0  -2,1.3,0  -2,-1.3,0  2,-1.3,0"
+                                        TriangleIndices="0 1 2  0 2 3"
+                                        TextureCoordinates="0,0  1,0  1,1  0,1"/>
+                    </Viewport2DVisual3D.Geometry>
+                    <Viewport2DVisual3D.Material>
+                        <DiffuseMaterial Brush="White"/>
+                    </Viewport2DVisual3D.Material>
+
+                    <!-- Nội dung UI Mặt sau -->
+                    <Border Background="#0F172A" CornerRadius="16" BorderBrush="#10B981" BorderThickness="2"
+                            Width="520" Height="340" Cursor="Hand" MouseLeftButtonUp="OnCardClicked">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="25" ShadowDepth="8" Color="#000000" Opacity="0.4"/>
+                        </Border.Effect>
+
+                        <Grid Margin="30">
+                            <StackPanel VerticalAlignment="Center">
+                                <!-- Nghĩa tiếng Việt -->
+                                <TextBlock Text="Định nghĩa:" Foreground="#94A3B8" FontSize="13" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding CurrentCard.MeaningVi}" 
+                                           Foreground="#34D399" FontSize="26" FontWeight="Bold" 
+                                           TextWrapping="Wrap" Margin="0,4,0,20"/>
+
+                                <!-- Ví dụ Tiếng Anh -->
+                                <TextBlock Text="Câu ví dụ thực tế:" Foreground="#94A3B8" FontSize="13" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding CurrentCard.ExampleEn}" 
+                                           Foreground="#F1F5F9" FontSize="17" FontStyle="Italic" 
+                                           TextWrapping="Wrap" Margin="0,4,0,6"/>
+
+                                <!-- Dịch nghĩa ví dụ -->
+                                <TextBlock Text="{Binding CurrentCard.ExampleVi}" 
+                                           Foreground="#64748B" FontSize="15" 
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+
+                            <TextBlock Text="Nhấp chuột hoặc ấn [Space] để quay lại ↺" 
+                                       Foreground="#475569" FontSize="13" 
+                                       HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                        </Grid>
+                    </Border>
+                </Viewport2DVisual3D>
+            </ContainerUIElement3D>
+        </Viewport3D>
+    </Grid>
+</UserControl>

@@ -1,0 +1,15 @@
+<Application x:Class="EnglishFlashcard3D.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:EnglishFlashcard3D"
+             xmlns:converters="clr-namespace:EnglishFlashcard3D.Converters"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <!-- Converters -->
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:InvertedBoolConverter x:Key="InvertedBoolConverter"/>
+        <converters:NotEmptyStringConverter x:Key="NotEmptyStringConverter"/>
+        <converters:EmptyListToVisibilityConverter x:Key="EmptyListToVisibilityConverter"/>
+        <converters:AndBoolConverter x:Key="AndBoolConverter"/>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,215 @@
+<Window x:Class="EnglishFlashcard3D.GenerateVocabularyWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="🤖 Sinh Từ Vựng Bằng Gemini AI" 
+        Height="700" Width="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="#F8FAFC">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#1E293B" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="🤖 Sinh Từ Vựng Tiếng Anh Bằng Gemini AI" 
+                           Foreground="White" FontSize="22" FontWeight="Bold"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="350"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel - Input Form -->
+            <Border Grid.Column="0" Background="White" CornerRadius="8" 
+                    BorderBrush="#E2E8F0" BorderThickness="1" Padding="20">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="📝 Tham Số Sinh Từ" FontSize="16" FontWeight="Bold" Foreground="#1E293B" Margin="0,0,0,15"/>
+
+                        <!-- Topic Input -->
+                        <StackPanel Margin="0,0,0,15">
+                            <TextBlock Text="Chủ Đề (Topic)" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding Topic, UpdateSourceTrigger=PropertyChanged}"
+                                     Background="White" BorderBrush="#CBD5E1" BorderThickness="1"
+                                     Padding="12" Height="40"
+                                     Foreground="#1E293B" FontSize="14"
+                                     IsEnabled="{Binding IsGenerating, Converter={StaticResource InvertedBoolConverter}}"
+                                     TextWrapping="Wrap"/>
+                            <TextBlock Text="VD: Business, Technology, Health, Travel, ..." 
+                                       FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <!-- Card Count Slider -->
+                        <StackPanel Margin="0,0,0,15">
+                            <Grid Margin="0,0,0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Số Từ Cần Sinh" FontWeight="Bold" Foreground="#475569"/>
+                                <TextBlock Grid.Column="1" Text="{Binding CardCount}" 
+                                           FontWeight="Bold" Foreground="#0284C7" FontSize="14"/>
+                            </Grid>
+                            <Slider Minimum="1" Maximum="20" Value="{Binding CardCount}"
+                                    Background="#E2E8F0" Height="5"
+                                    IsEnabled="{Binding IsGenerating, Converter={StaticResource InvertedBoolConverter}}"/>
+                        </StackPanel>
+
+                        <!-- Level Selection -->
+                        <StackPanel Margin="0,0,0,15">
+                            <TextBlock Text="Mức Độ (Level)" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,5"/>
+                            <ComboBox ItemsSource="{Binding LevelOptions}"
+                                      SelectedItem="{Binding SelectedLevel}"
+                                      Background="White" BorderBrush="#CBD5E1" BorderThickness="1"
+                                      Padding="12,8" Height="36"
+                                      Foreground="#1E293B" FontSize="14"
+                                      IsEnabled="{Binding IsGenerating, Converter={StaticResource InvertedBoolConverter}}"/>
+                        </StackPanel>
+
+                        <Separator Background="#E2E8F0" Margin="0,10"/>
+
+                        <!-- Generate Button -->
+                        <Button Content="🚀 Sinh Từ Vựng (Gemini AI)" 
+                                Command="{Binding GenerateCommand}"
+                                Background="#0284C7" Foreground="White" FontWeight="Bold"
+                                Padding="15,12" Height="44" FontSize="14" Margin="0,0,0,10"
+                                Cursor="Hand">
+                            <Button.IsEnabled>
+                                <MultiBinding Converter="{StaticResource AndBoolConverter}">
+                                    <Binding Path="IsGenerating" Converter="{StaticResource InvertedBoolConverter}"/>
+                                    <Binding Path="Topic" Converter="{StaticResource NotEmptyStringConverter}"/>
+                                </MultiBinding>
+                            </Button.IsEnabled>
+                        </Button>
+
+                        <!-- Clear Button -->
+                        <Button Content="🗑️ Xóa Dữ Liệu" 
+                                Command="{Binding ClearCommand}"
+                                Background="#64748B" Foreground="White" FontWeight="Bold"
+                                Padding="15,12" Height="44" FontSize="14"
+                                Cursor="Hand"
+                                IsEnabled="{Binding IsGenerating, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                        <Separator Background="#E2E8F0" Margin="0,15,0,10"/>
+
+                        <!-- Status Message -->
+                        <Border Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" 
+                                Padding="12" MinHeight="60" Margin="0,0,0,15">
+                            <TextBlock Text="{Binding StatusMessage}" Foreground="#475569" 
+                                       TextWrapping="Wrap" FontSize="12"/>
+                        </Border>
+
+                        <!-- Loading Indicator -->
+                        <Grid Visibility="{Binding IsGenerating, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="⏳ Đang xử lý..." HorizontalAlignment="Center" 
+                                           Foreground="#0284C7" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Right Panel - Generated Cards List -->
+            <Border Grid.Column="1" Background="White" CornerRadius="8" 
+                    BorderBrush="#E2E8F0" BorderThickness="1" Margin="15,0,0,0" Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="📚 Từ Vựng Được Sinh" FontSize="16" FontWeight="Bold" 
+                               Foreground="#1E293B" Margin="0,0,0,15"/>
+
+                    <ListBox Grid.Row="1" ItemsSource="{Binding GeneratedCards}" 
+                             Background="White" BorderThickness="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" 
+                                        CornerRadius="6" Padding="15" Margin="0,8">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Word & Part of Speech -->
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Word}" FontSize="18" FontWeight="Bold" 
+                                                       Foreground="#1E293B"/>
+                                            <Border Grid.Column="1" Background="#0369A1" CornerRadius="4" 
+                                                    Padding="8,4">
+                                                <TextBlock Text="{Binding PartOfSpeech}" Foreground="White" 
+                                                           FontSize="11" FontWeight="Bold"/>
+                                            </Border>
+                                        </Grid>
+
+                                        <!-- Phonetic -->
+                                        <TextBlock Grid.Row="1" Text="{Binding Phonetic}" 
+                                                   Foreground="#38BDF8" FontStyle="Italic" FontSize="12" 
+                                                   Margin="0,4,0,0"/>
+
+                                        <!-- Meaning -->
+                                        <TextBlock Grid.Row="2" Text="{Binding MeaningVi}" 
+                                                   Foreground="#10B981" FontWeight="SemiBold" 
+                                                   Margin="0,8,0,0" TextWrapping="Wrap"/>
+
+                                        <!-- Example -->
+                                        <TextBlock Grid.Row="3" Text="{Binding ExampleEn}" 
+                                                   Foreground="#64748B" FontStyle="Italic" FontSize="12" 
+                                                   Margin="0,8,0,0" TextWrapping="Wrap"/>
+
+                                        <!-- Example VI -->
+                                        <TextBlock Grid.Row="4" Text="{Binding ExampleVi}" 
+                                                   Foreground="#94A3B8" FontSize="11" 
+                                                   Margin="0,4,0,0" TextWrapping="Wrap"/>
+
+                                        <!-- Note -->
+                                        <TextBlock Grid.Row="5" Text="{Binding Note}" 
+                                                   Foreground="#CBD5E1" FontSize="10" FontStyle="Italic"
+                                                   Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Empty State -->
+                    <Grid Grid.Row="1" Visibility="{Binding GeneratedCards.Count, Converter={StaticResource EmptyListToVisibilityConverter}}">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="📭" FontSize="48" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Chưa có từ vựng nào" HorizontalAlignment="Center" 
+                                       Foreground="#94A3B8" FontSize="14" Margin="0,10,0,0"/>
+                            <TextBlock Text="Nhập chủ đề và nhấp sinh từ" HorizontalAlignment="Center" 
+                                       Foreground="#CBD5E1" FontSize="12" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
